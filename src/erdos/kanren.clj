@@ -72,6 +72,7 @@
           a
           (vary-meta s update ::vars (fnil conj #{}) new-var)))))))
 
+;; introduces a new variable
 (defmacro fresh [var-vec & clauses]
   (assert (vector? var-vec))
   (assert (every? symbol? var-vec))
@@ -79,7 +80,7 @@
        ~@(for [v (reverse var-vec)]
            `(->> (fn [~v]) (call-fresh)))))
 
-;; returns a goal that succeeds whenever goal1 or goal2 succeeds
+;; succeeds if any goals succeed
 (defmacro ldisj+ [& goals]
   (let [s  (gensym "s")
         rf (gensym "rs")]

@@ -1,20 +1,22 @@
 # erdos.kanren
 
-A Cl
-A Kanren implementation with Transducers in Clojure.
+A minimalistic Clojure implementation of [miniKanren](http://minikanren.org/). The implementation is very small and naive, however, instead of sequences or streams, it is using [Transducers](https://clojure.org/reference/transducers) for lower memory impact and faster evaluation.
+
+![Tests](https://github.com/erdos/erdos.kanren/workflows/Clojure/badge.svg)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/erdos/stencil/issues)
+[![HitCount](http://hits.dwyl.io/erdos/stencil.svg)](http://hits.dwyl.io/erdos/erdos.kanren)
+[![EPL 2.0](https://img.shields.io/badge/License-EPL%202.0-red.svg)](https://www.eclipse.org/legal/epl-2.0/)
 
 ## Usage
 
-FIXME
+Clone the repository. Run with Leiningen.
 
 ## Performance
 
 The [Zebra Puzzle](https://en.wikipedia.org/wiki/Zebra_Puzzle) was used for benchmarking the code. You can also run the tests with `$ lein test :bench` with [Leiningen](https://leiningen.org/).
 
-
---------------------------------------------------------
 |    Library               | Mean Time | Std-deviation |
---------------------------------------------------------
+| ------------------------ | --------- | ------------- |
 | erdos.kanren             | 13.28 ms  | 148 µs        |
 | clojure.core.logic 1.0.0 | 21.52 ms  | 207 µs        |
 
@@ -36,6 +38,6 @@ http://www.eclipse.org/legal/epl-2.0.
 This Source Code may also be made available under the following Secondary
 Licenses when the conditions for such availability set forth in the Eclipse
 Public License, v. 2.0 are satisfied: GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or (at your
-option) any later version, with the GNU Classpath Exception which is available
+the Free Software Foundation, either version 2 of the License, or (at youro
+mption) any later version, with the GNU Classpath Exception which is available
 at https://www.gnu.org/software/classpath/license.html.
