@@ -29,14 +29,6 @@
       :else     nil ;; can not unify two scalars
       )))
 
-#_
-(defmacro lconj+
-  ([goal] `(delay-goal ~goal))
-  ([goal & goals] `(lconj (delay-goal ~goal) (lconj+ ~@goals))))
-
-(declare === fresh conde)
-
-;; !!!
 (defn === [u v]
   (fn [rf]
     (fn
@@ -48,11 +40,13 @@
          a)))))
 
 ;; goal-ctor: lvar -> transducer
-(defn call-fresh [goal-ctor]
-  (goal-ctor (lvar)))
+(defn call-fresh [goal-ctor] (goal-ctor (lvar)))
 
-;; TODO: copypaste
 (defmacro fresh [var-vec & clauses]
+  (assert (vector? var-vec))
+  (assert (every? symbol? var-vec))
+
+  ;; TODO: copypaste
   (if (empty? var-vec)
     `(lconj+ ~@clauses)
     `(call-fresh (fn [~(first var-vec)]
@@ -111,6 +105,15 @@
   )
 
 ;; user-level goals
+
+;; like (fresh) but without variables
+(defmacro all [& clauses] `(fresh [] ~@clauses))
+
+;; TODO: list functions
+#_
+(defn membero [elem list]
+  )
+
 
 #_
 (defn conso [first rest out]

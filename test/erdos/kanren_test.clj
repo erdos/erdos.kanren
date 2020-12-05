@@ -74,6 +74,13 @@
           (=== b 2))
         [{}]))))
 
+(deftest test-all
+  (is (empty? (run* [a b]
+                (all
+                 (=== a 1)
+                 (=== a b)
+                 (=== b 2))))))
+
 (deftest simple-tests
   (is (= ["hello"]
          (run* [q] (=== q "hello")))))
