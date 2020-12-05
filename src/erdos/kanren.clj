@@ -5,9 +5,8 @@
   ([n] (-> n name keyword)))
 
 (def lvar? keyword?)
-(defn scalar? [x] (or (nil? x) (boolean? x) (number? x) (string? x) (char? x) (symbol? x)))
 
-(defn walk [u substitutions]
+(defn- walk [u substitutions]
   (if (lvar? u)
     (if-let [val (get substitutions u)]
       (recur val substitutions)
@@ -64,10 +63,10 @@
       ([] (rf))
       ([a] (rf a))
       ([a s]
-       (assert (some? s)) ;; TODO: turn it on!
+       (assert (some? s))
        (let [new-var (if-let [cnt (-> s meta ::vars count)]
                        (lvar (str cnt))
-                       (lvar "0"))
+                       (lvar :0))
              new-red ((goal-ctor new-var) rf)]
          (new-red
           a
@@ -79,14 +78,6 @@
   `(-> (lconj+ ~@clauses)
        ~@(for [v (reverse var-vec)]
            `(->> (fn [~v]) (call-fresh)))))
-
-;; always fails
-(defn fail [& comment]
-  (fn [rf] (fn ([] (rf)) ([a] (rf a)) ([a s] a))))
-
-;; always successful
-(defn succeed [& comment]
-  identity)
 
 ;; returns a goal that succeeds whenever goal1 or goal2 succeeds
 (defmacro ldisj+ [& goals]
@@ -192,8 +183,3 @@
   (cond (zero? n) []
         (even? n) (cons 0 (build-num (/ n 2)))
         (odd? n)  (cons 1 (build-num (/ (- n 1) 2)))))
-
-#_
-(defn poso [n]
-  (fresh [a d]
-    (=== (a :& d) n)))

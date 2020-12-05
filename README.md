@@ -1,13 +1,27 @@
 # erdos.kanren
 
+A Cl
 A Kanren implementation with Transducers in Clojure.
 
 ## Usage
 
 FIXME
 
+## Performance
+
+The [Zebra Puzzle](https://en.wikipedia.org/wiki/Zebra_Puzzle) was used for benchmarking the code. You can also run the tests with `$ lein test :bench` with [Leiningen](https://leiningen.org/).
+
+
+--------------------------------------------------------
+|    Library               | Mean Time | Std-deviation |
+--------------------------------------------------------
+| erdos.kanren             | 13.28 ms  | 148 µs        |
+| clojure.core.logic 1.0.0 | 21.52 ms  | 207 µs        |
+
+
 ## Bibliography
 
+- [µKanren: A Minimal Functional Core for Relational Programming](http://webyrd.net/scheme-2013/papers/HemannMuKanren2013.pdf)
 - [core.logic](https://github.com/clojure/core.logic), miniKanren in Clojure
 - [MicroLogic](http://mullr.github.io/micrologic/literate.html) literate documentation
 

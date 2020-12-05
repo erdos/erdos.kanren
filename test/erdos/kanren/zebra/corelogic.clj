@@ -1,4 +1,4 @@
-(ns erdos.zebra-corelogic
+(ns erdos.kanren.zebra.corelogic
   (:refer-clojure :exclude [==])
   (:require [clojure.test :refer [deftest testing is are]]
             [clojure.walk :refer [postwalk-replace]]
@@ -37,9 +37,9 @@
     (nexto [_ _ _ :horse _] [_ :kools _ _ _] hs)
     (nexto [_ _ _ :fox _] [_ :chesterfields _ _ _] hs))))
 
-(defn zebra []
-  (run* [q] (zebrao q)))
+(defn run-test []
+  (doall (run* [q] (zebrao q))))
 
-(deftest test-zebra
+(deftest test-test-log
   (println "Testing core.logic:")
-  (time (println (zebra))))
+  (time (println (run-test))))

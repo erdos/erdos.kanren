@@ -1,9 +1,9 @@
-(ns erdos.zebra
+(ns erdos.kanren.zebra.test
   (:require [clojure.test :refer :all]
             [clojure.walk :refer [postwalk-replace]]
             [erdos.kanren :refer :all]))
 
-;; original source:
+;; !!! original source:
 ;;
 ;; https://gist.github.com/rm-hull/6952960
 
@@ -45,9 +45,9 @@
     (nexto [_ _ _ "fox" _] [_ "chesterfields" _ _ _] hs))))
 
 ;; who drinks water? who owns the zebra?
-(defn zebra []
-  (run* [q] (zebrao q)))
+(defn run-test []
+  (doall (run* [q] (zebrao q))))
 
-(deftest test-zebra
+(deftest run-test-log
   (println "Testing own code:")
-  (time (println (zebra))))
+  (time (println (run-test))))
