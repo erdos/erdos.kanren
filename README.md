@@ -17,8 +17,8 @@ The [Zebra Puzzle](https://en.wikipedia.org/wiki/Zebra_Puzzle) was used for benc
 
 |    Library               | Mean Time | Std-deviation |
 | ------------------------ | --------- | ------------- |
-| erdos.kanren             | 13.28 ms  | 148 µs        |
-| clojure.core.logic 1.0.0 | 21.52 ms  | 207 µs        |
+| **erdos.kanren**             | 13.28 ms  | 148 µs        |
+| [clojure.core.logic](https://github.com/clojure/core.logic) 1.0.0 | 21.52 ms  | 207 µs        |
 
 
 ## Bibliography
