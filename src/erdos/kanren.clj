@@ -18,9 +18,13 @@
 
 (defn- unify-seq [u v substitutions]
   (cond
+    ; (nil? u) nil (nil? v) nil
     (= u v)          substitutions
     (= :& (first u)) (unify (second u) v substitutions)
     (= :& (first v)) (unify u (second v) substitutions)
+
+    (empty? u)        nil
+    (empty? v)        nil
 
     :else
     (some->> substitutions
@@ -35,7 +39,7 @@
       (= u v)   substitutions
       (lvar? u) (assoc substitutions u v)
       (lvar? v) (assoc substitutions v u)
-      (sequential? u) (unify-seq u v substitutions)
+      (and (sequential? u) (sequential? v)) (unify-seq u v substitutions)
       :else     nil ;; can not unify two scalars
       )))
 
@@ -72,7 +76,7 @@
   (assert (vector? var-vec))
   (assert (every? symbol? var-vec))
   `(-> (lconj+ ~@clauses)
-       ~@(for [v var-vec]
+       ~@(for [v (reverse var-vec)]
            `(->> (fn [~v]) (call-fresh)))))
 
 ;; always fails
@@ -105,16 +109,14 @@
                   clauses)))
 
 (defn- deep-walk [e m]
-  (cond (lvar? e)       (recur (get m lvar) m)
+  (cond (lvar? e)       (if (contains? m e)
+                          (recur (get m e) m)
+                          e)
         (sequential? e) (mapv (fn [x] (deep-walk x m)) e)
         :else           e))
 
 (defn map-and-extract [key]
-  (map (fn [s]
-         (println "Substitutions: " s)
-         (if (contains? s key)
-           (deep-walk (get s key) s)
-           s))))
+  (map (partial deep-walk key)))
 
 (defmacro run* [fresh-var-vec & goals]
   `(sequence

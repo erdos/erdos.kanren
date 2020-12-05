@@ -2,10 +2,6 @@
   (:require [clojure.test :refer :all]
             [erdos.kanren :refer :all]))
 
-(deftest test-walk
-  (testing "only variable")
-  )
-
 (def test-smap {::a 1})
 
 (deftest test-unify
@@ -28,35 +24,10 @@
       (is (map? (unify [1 2 3] (lvar) test-smap)))
 
       (is (= {:0 []} (unify :0 [] {})))
-      (is (= {:0 []} (unify [] :0 {})))
-      )
-    )
-  )
+      (is (= {:0 []} (unify [] :0 {}))))
 
-#_
-(deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 0 1))))
-
-
-#_
-(deftest test-fresh
-  (is (= {(lvar :x) 1
-          (lvar :y) 2}
-         (fresh [x y]
-           (=== x 1)
-           (=== y 2)))))
-
-#_
-(deftest test-run*
-  (is (= [1 7]
-         (run* [q]
-           (conde [(=== q 1)]
-                  [(=== q 7)])))))
-#_
-(deftest test-call-fresh
-  (is (fn? (call-fresh (fn [x] (=== x 1)))))
-  )
+    (testing "splitting lists"
+      (is (= nil (unify [:0 :& :1] [] {}))))))
 
 (deftest test-===
   (testing "Can not unify"
@@ -111,23 +82,37 @@
     (is (= [] (run* [q] (conso 1 [2 3] []))))
     (is (= [] (run* [q] (conso 1 [2 3] [1 2 3 4]))))))
 
-#_
-(deftest test-membero
-  (testing "not in list"
-    (is (= [] (run* [q] (membero 1 []))))
-    (is (= [] (run* [q] (membero 1 [2 3]))))
-    (is (= [] (run* [q] (membero 1 1))))))
-
-(deftest test-nilo
-  (is (= [nil] (run* [q] (nilo q)))))
+(deftest test-firsto
+  (testing "match on first element of list"
+    (is (= [1] (run* [q] (firsto q [1 2 3]))))
+    (is (= [1] (run* [q] (firsto q [1]))))
+    (is (= [] (run* [q] (firsto q [])))))
+  (testing "match on list itself"
+    (is (= [] (run* [q] (firsto 1 [2 q]))))
+    (is (= [:0] (run* [q] (firsto 1 [1 q]))))
+    (is (= [[1 :& :1]] (run* [q] (firsto 1 q)))))
+  (testing "not a list"
+    (is (= [] (run* [q] (firsto 1 2))))))
 
 (deftest test-emptyo
   (is (= [()] (run* [q] (emptyo q))))
   (is (= [[1 ()]] (run* [q x]
+                    (emptyo x)
+                    (=== q [1 x])
+                    )))
+  (is (= [[1 ()]] (run* [q x]
                     (=== q [1 x])
                     (emptyo x)))))
 
-#_(testing "member"
+(deftest test-nilo
+  (is (= [nil] (run* [q] (nilo q)))))
+
+(deftest test-membero
+  (testing "not in list"
+    (is (= [] (run* [q] (membero 1 []))))
+    (is (= [] (run* [q] (membero 1 [2 3]))))
+    (is (= [] (run* [q] (membero 1 1)))))
+  (testing "member of list"
     (is (= [1] (run* [q] (membero 1 [q 3]))))
     (is (= [1] (run* [q] (membero 1 [2 q]))))
-    (is (= [1 2 3] (run* [q] (membero q [1 2 3])))))
+    (is (= [1 2 3] (run* [q] (membero q [1 2 3]))))))
