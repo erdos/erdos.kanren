@@ -2,7 +2,7 @@
 
 A minimalistic Clojure implementation of [miniKanren](http://minikanren.org/). The implementation is very small and naive, however, instead of sequences or streams, it is using [Transducers](https://clojure.org/reference/transducers) for lower memory impact and faster evaluation.
 
-![Tests](https://github.com/erdos/erdos.kanren/workflows/Clojure/badge.svg)
+![Tests](https://github.com/erdos/erdos.kanren/workflows/Tests/badge.svg)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/erdos/stencil/issues)
 [![HitCount](http://hits.dwyl.io/erdos/stencil.svg)](http://hits.dwyl.io/erdos/erdos.kanren)
 [![EPL 2.0](https://img.shields.io/badge/License-EPL%202.0-red.svg)](https://www.eclipse.org/legal/epl-2.0/)
