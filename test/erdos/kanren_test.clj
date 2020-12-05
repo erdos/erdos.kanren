@@ -116,3 +116,23 @@
     (is (= [1] (run* [q] (membero 1 [q 3]))))
     (is (= [1] (run* [q] (membero 1 [2 q]))))
     (is (= [1 2 3] (run* [q] (membero q [1 2 3]))))))
+
+(deftest text-bit-xoro
+  (is (= [[0 0] [1 1]]
+         (run* [s]
+           (fresh [x y]
+             (bit-xoro x y 0)
+             (=== [x y] s))))))
+
+(deftest test-full-addero
+  (is (= [[0 1]]
+         (run* [s]
+           (fresh [r c]
+             (full-addero 0 1 1 r c)
+             (=== [r c] s))))))
+
+#_
+(deftest test-poso
+  (is (= [] (run* [q] (poso []) (=== "t" q))))
+  (is (= [[:0 :& :1]] (run* [r] (poso r))))
+  )

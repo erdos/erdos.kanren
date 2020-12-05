@@ -67,8 +67,9 @@
        (assert (some? s)) ;; TODO: turn it on!
        (let [new-var (if-let [cnt (-> s meta ::vars count)]
                        (lvar (str cnt))
-                       (lvar "0"))]
-         (((goal-ctor new-var) rf)
+                       (lvar "0"))
+             new-red ((goal-ctor new-var) rf)]
+         (new-red
           a
           (vary-meta s update ::vars (fnil conj #{}) new-var)))))))
 
@@ -107,6 +108,8 @@
   `(ldisj+ ~@(map (fn [clause]
                     `(lconj+ ~@clause))
                   clauses)))
+
+(defmacro conda [& clauses])
 
 (defn- deep-walk [e m]
   (cond (lvar? e)       (if (contains? m e)
@@ -160,3 +163,37 @@
 (defn membero [elem list]
   (any (firsto elem list)
        (fresh [d] (resto d list) (membero elem d))))
+
+;; Chapter 7. A Bit Too Much
+
+(defn bit-xoro [x y r]
+  (conde [(=== 0 x) (=== 0 y) (=== 0 r)]
+         [(=== 1 x) (=== 0 y) (=== 1 r)]
+         [(=== 0 x) (=== 1 y) (=== 1 r)]
+         [(=== 1 x) (=== 1 y) (=== 0 r)]))
+
+(defn bit-ando [x y r]
+  (conde [(=== 0 x) (=== 0 y) (=== 0 r)]
+         [(=== 1 x) (=== 0 y) (=== 0 r)]
+         [(=== 0 x) (=== 1 y) (=== 0 r)]
+         [(=== 1 x) (=== 1 y) (=== 1 r)]))
+
+(defn half-addero [x y r c]
+  (all (bit-xoro x y r)
+       (bit-ando x y c)))
+
+(defn full-addero [b x y r c]
+  (fresh [w xy wz]
+    (half-addero x y w xy)
+    (half-addero w b r wz)
+    (bit-xoro xy wz c)))
+
+(defn build-num [n]
+  (cond (zero? n) []
+        (even? n) (cons 0 (build-num (/ n 2)))
+        (odd? n)  (cons 1 (build-num (/ (- n 1) 2)))))
+
+#_
+(defn poso [n]
+  (fresh [a d]
+    (=== (a :& d) n)))
