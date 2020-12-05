@@ -14,18 +14,28 @@
       u)
     u))
 
+(declare unify)
+
+(defn- unify-seq [u v substitutions]
+  (cond
+    (= u v)          substitutions
+    (= :& (first u)) (unify (second u) v substitutions)
+    (= :& (first v)) (unify u (second v) substitutions)
+
+    :else
+    (some->> substitutions
+             (unify (first u) (first v))
+             (unify-seq (rest u) (rest v)))))
+
 (defn unify [u v substitutions]
   (assert substitutions)
   (let [u (walk u substitutions)
         v (walk v substitutions)]
     (cond
       (= u v)   substitutions
-      (nil? u)  nil
       (lvar? u) (assoc substitutions u v)
       (lvar? v) (assoc substitutions v u)
-      (sequential? u) (some->> substitutions
-                               (unify (first u) (first v))
-                               (unify (next u) (next v)))
+      (sequential? u) (unify-seq u v substitutions)
       :else     nil ;; can not unify two scalars
       )))
 
@@ -39,37 +49,52 @@
          (rf a s2)
          a)))))
 
-;; goal-ctor: lvar -> transducer
-(defn call-fresh [goal-ctor] (goal-ctor (lvar)))
-
-(defmacro fresh [var-vec & clauses]
-  (assert (vector? var-vec))
-  (assert (every? symbol? var-vec))
-
-  ;; TODO: copypaste
-  (if (empty? var-vec)
-    `(lconj+ ~@clauses)
-    `(call-fresh (fn [~(first var-vec)]
-                   (fresh [~@(rest var-vec)]
-                     ~@clauses)))))
-
-;; returns a goal that succeeds whenever goal1 or goal2 succeeds
-(defn ldisj [goal1 goal2]
+;; parameter is a function: lvar -> transducer
+;;
+;; original implementation without metas:
+;; (goal-ctor (lvar))
+(defn call-fresh [goal-ctor]
+  (assert (fn? goal-ctor))
   (fn [rf]
     (fn
       ([] (rf))
       ([a] (rf a))
       ([a s]
-       (-> a
-           ((goal1 rf) s)
-           ((goal1 rf) s))))))
+       (assert (some? s)) ;; TODO: turn it on!
+       (let [new-var (if-let [cnt (-> s meta ::vars count)]
+                       (lvar (str cnt))
+                       (lvar "0"))]
+         (((goal-ctor new-var) rf)
+          a
+          (vary-meta s update ::vars (fnil conj #{}) new-var)))))))
 
-;; TODO: implement this!
-(defmacro ldisj+
-  ([g] g)
-  ([a b] (ldisj a b))
-  ([a b c] (ldisj a (ldisj b c)))
-  ([a b c d] (ldisj a (ldisj b (ldisj c d)))))
+(defmacro fresh [var-vec & clauses]
+  (assert (vector? var-vec))
+  (assert (every? symbol? var-vec))
+  `(-> (lconj+ ~@clauses)
+       ~@(for [v var-vec]
+           `(->> (fn [~v]) (call-fresh)))))
+
+;; always fails
+(defn fail [& comment]
+  (fn [rf] (fn ([] (rf)) ([a] (rf a)) ([a s] a))))
+
+;; always successful
+(defn succeed [& comment]
+  identity)
+
+;; returns a goal that succeeds whenever goal1 or goal2 succeeds
+(defmacro ldisj+ [& goals]
+  (let [s  (gensym "s")
+        rf (gensym "rs")]
+    `(fn [~rf]
+       (fn
+         ([] (~rf))
+         ([a#] (~rf a#))
+         ([a# ~s]
+          (-> a#
+              ~@(for [g goals]
+                  (list (list g rf) s))))))))
 
 ;; returns a goal that succeeds when all goals succeed
 (defmacro lconj+ [& clauses] `(comp ~@clauses))
@@ -79,50 +104,57 @@
                     `(lconj+ ~@clause))
                   clauses)))
 
+(defn- deep-walk [e m]
+  (cond (lvar? e)       (recur (get m lvar) m)
+        (sequential? e) (mapv (fn [x] (deep-walk x m)) e)
+        :else           e))
+
+(defn map-and-extract [key]
+  (map (fn [s]
+         (println "Substitutions: " s)
+         (if (contains? s key)
+           (deep-walk (get s key) s)
+           s))))
+
 (defmacro run* [fresh-var-vec & goals]
-  `(sequence (fresh [~@fresh-var-vec] ~@goals) [{}]))
+  `(sequence
+    (comp (fresh [~@fresh-var-vec] ~@goals)
+          (map-and-extract :0))
+    [{}]))
 
-#_(defn call-fresh [goal-ctor]
-  (fn [state]
-    (let [goal (goal-ctor (lvar))]
-      (goal state))))
+(defmacro all [& clauses] `(lconj+ ~@clauses))
+(defmacro any [& clauses] `(ldisj+ ~@clauses))
 
-;; (call-fresh (fn [x] (=== x 2)))
-;; (comp (=== x 2) (call-fresh (lvar)))
 
-;; (call-fresh (fn [x] (=== x 2)))
+                                        ; LIST FUNCTIONS
 
-(comment
+(defn conso [head tail out]
+  (if (lvar? tail)
+    (=== [head :& tail] out)
+    (=== (cons head tail) out)))
 
-  (run*
-    (call-fresh
-     (fn [x]
-       (call-fresh
-        (fn [y]
-          (=== x 2)
-          (=== x y))))))
+(defn firsto [head out]
+  (fresh [tail]
+    (conso head tail out)))
 
-  )
+(defn resto [tail out]
+  (fresh [head]
+    (conso head tail out)))
 
-;; user-level goals
+(defn emptyo [s]
+  (=== '() s))
 
-;; like (fresh) but without variables
-(defmacro all [& clauses] `(fresh [] ~@clauses))
+(defn nilo [s]
+  (=== nil s))
 
-;; TODO: list functions
-#_
+(defn appendo [seq1 seq2 out]
+  (conde
+   [(emptyo seq1) (=== seq2 out)]
+   [(fresh [first rest rec]
+      (conso first rest seq1)
+      (conso first rec out)
+      (appendo rest seq2 rec))]))
+
 (defn membero [elem list]
-  )
-
-
-#_
-(defn conso [first rest out]
-  (if (lvar? rest)
-    (=== [first dot rest] out)
-    (=== (cons first rest) out)))
-#_
-(defn resto [rest out]
-  (fresh [first]
-    (conso first rest out)))
-
-; (defn emptyo [s] (=== '() s))
+  (any (firsto elem list)
+       (fresh [d] (resto d list) (membero elem d))))

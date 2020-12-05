@@ -11,14 +11,25 @@
 (deftest test-unify
   (testing "can not unify")
 
+  (testing "nil values"
+    (is (= {:0 nil} (unify :0 nil {})))
+    (is (= {:0 nil} (unify nil :0 {})))
+    (is (= {:0 nil} (unify [:0 1] [nil 1] {})))
+    (is (= {:0 nil} (unify [1 :0] [1 nil] {}))))
+
   (testing "sequentials"
     (is (= test-smap (unify [] [] test-smap)))
     (is (= test-smap (unify [1 2 3] [1 2 3] test-smap)))
     (is (nil? (unify [] [1] test-smap)))
     (is (nil? (unify [1] [1 2] test-smap)))
 
-    (is (map? (unify (lvar) [1 2 3] test-smap)))
-    (is (map? (unify [1 2 3] (lvar) test-smap)))
+    (testing "to variable"
+      (is (map? (unify (lvar) [1 2 3] test-smap)))
+      (is (map? (unify [1 2 3] (lvar) test-smap)))
+
+      (is (= {:0 []} (unify :0 [] {})))
+      (is (= {:0 []} (unify [] :0 {})))
+      )
     )
   )
 
@@ -84,3 +95,39 @@
 (deftest simple-tests
   (is (= ["hello"]
          (run* [q] (=== q "hello")))))
+
+(deftest test-conso
+  (is (= [1]
+         (run* [q] (conso q [] [1]))))
+  (is (= [1]
+         (run* [q] (conso q [2 3] [1 2 3]))))
+  (is (= [2]
+         (run* [q] (conso 1 [q 3] [1 2 3]))))
+  (is (= [[3]]
+         (run* [q] (conso 1 [2 3] [1 2 :& q]))))
+  (testing "can not match"
+    (is (= [] (run* [q] (conso 1 [2 3] [1 2]))))
+    (is (= [] (run* [q] (conso 1 [2 3] [2 3]))))
+    (is (= [] (run* [q] (conso 1 [2 3] []))))
+    (is (= [] (run* [q] (conso 1 [2 3] [1 2 3 4]))))))
+
+#_
+(deftest test-membero
+  (testing "not in list"
+    (is (= [] (run* [q] (membero 1 []))))
+    (is (= [] (run* [q] (membero 1 [2 3]))))
+    (is (= [] (run* [q] (membero 1 1))))))
+
+(deftest test-nilo
+  (is (= [nil] (run* [q] (nilo q)))))
+
+(deftest test-emptyo
+  (is (= [()] (run* [q] (emptyo q))))
+  (is (= [[1 ()]] (run* [q x]
+                    (=== q [1 x])
+                    (emptyo x)))))
+
+#_(testing "member"
+    (is (= [1] (run* [q] (membero 1 [q 3]))))
+    (is (= [1] (run* [q] (membero 1 [2 q]))))
+    (is (= [1 2 3] (run* [q] (membero q [1 2 3])))))
