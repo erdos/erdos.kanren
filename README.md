@@ -2,7 +2,7 @@
 
 A minimalistic Clojure implementation of [miniKanren](http://minikanren.org/). The implementation is very small and naive, however, instead of sequences or streams, it is using [Transducers](https://clojure.org/reference/transducers) for lower memory impact and faster evaluation.
 
-An important **limitation** is that lazy computation is missing, therefore extra care is needed to avoid stack overflow errors at this point.
+An important **limitation** is that support for lazy expresisons is missing. Therefore, recursive goals will produce `StackOverflowError` exceptions on evaluation.
 
 ![Tests](https://github.com/erdos/erdos.kanren/workflows/Tests/badge.svg)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/erdos/erdos.kanren/issues)
@@ -19,9 +19,9 @@ The [Zebra Puzzle](https://en.wikipedia.org/wiki/Zebra_Puzzle) was used for benc
 
 |    Library               | Mean Time | Std-deviation |
 | ------------------------ | --------- | ------------- |
-| **erdos.kanren**             | 13.28 ms  | 148 µs        |
-| [clojure.core.logic](https://github.com/clojure/core.logic) 1.0.0 | 21.52 ms  | 207 µs        |
-
+| **erdos.kanren**         | 13.28 ms  | 148 µs        |
+| [clojure.core.logic](https://github.com/clojure/core.logic) 1.0.0 | 21.52 ms  | 207 µs |
+| [microLogic](https://github.com/mullr/micrologic) | 27.78 ms | 1.35 ms |
 
 ## Bibliography
 
