@@ -1,5 +1,7 @@
 (ns erdos.kanren)
 
+(set! *warn-on-reflection* true)
+
 (defn lvar
   ([] (lvar (gensym)))
   ([n] (-> n name keyword)))
@@ -42,15 +44,19 @@
       :else     nil ;; can not unify two scalars
       )))
 
+(defmacro ->transducer [[rf a s] body]
+  (assert (every? symbol? [rf a s]))
+  `(fn [~rf]
+     (fn
+       ([] (~rf))
+       ([~a] (~rf ~a))
+       ([~a ~s] ~body))))
+
 (defn === [u v]
-  (fn [rf]
-    (fn
-      ([] (rf))
-      ([a] (rf a))
-      ([a s]
-       (if-let [s2 (unify u v s)]
-         (rf a s2)
-         a)))))
+  (->transducer [rf a s]
+    (if-let [s2 (unify u v s)]
+      (rf a s2)
+      a)))
 
 ;; parameter is a function: lvar -> transducer
 ;;
@@ -58,19 +64,14 @@
 ;; (goal-ctor (lvar))
 (defn call-fresh [goal-ctor]
   (assert (fn? goal-ctor))
-  (fn [rf]
-    (fn
-      ([] (rf))
-      ([a] (rf a))
-      ([a s]
-       (assert (some? s))
-       (let [new-var (if-let [cnt (-> s meta ::vars count)]
-                       (lvar (str cnt))
-                       (lvar :0))
-             new-red ((goal-ctor new-var) rf)]
-         (new-red
-          a
-          (vary-meta s update ::vars (fnil conj #{}) new-var)))))))
+  (->transducer [rf a s]
+    (let [new-var (if-let [cnt (-> s meta ::vars count)]
+                    (lvar (str cnt))
+                    (lvar :0))
+          new-red ((goal-ctor new-var) rf)]
+      (new-red
+       a
+       (vary-meta s update ::vars (fnil conj #{}) new-var)))))
 
 ;; introduces a new variable
 (defmacro fresh [var-vec & clauses]
@@ -84,14 +85,10 @@
 (defmacro ldisj+ [& goals]
   (let [s  (gensym "s")
         rf (gensym "rs")]
-    `(fn [~rf]
-       (fn
-         ([] (~rf))
-         ([a#] (~rf a#))
-         ([a# ~s]
-          (-> a#
-              ~@(for [g goals]
-                  (list (list g rf) s))))))))
+    `(->transducer [~rf a# ~s]
+       (-> a#
+           ~@(for [g goals]
+               (list (list g rf) s))))))
 
 ;; returns a goal that succeeds when all goals succeed
 (defmacro lconj+ [& clauses] `(comp ~@clauses))
@@ -100,8 +97,6 @@
   `(ldisj+ ~@(map (fn [clause]
                     `(lconj+ ~@clause))
                   clauses)))
-
-(defmacro conda [& clauses])
 
 (defn- deep-walk [e m]
   (cond (lvar? e)       (if (contains? m e)
@@ -118,6 +113,17 @@
     (comp (fresh [~@fresh-var-vec] ~@goals)
           (map-and-extract :0))
     [{}]))
+
+(defmacro run [n fresh-var-vec & goals]
+  (assert (pos-int? n))
+  `(sequence
+    (comp (fresh [~@fresh-var-vec] ~@goals)
+          (take ~n)
+          (map-and-extract :0))
+    [{}]))
+
+(defmacro run1 [fresh-var-vec & goals]
+  `(run 1 ~fresh-var-vec ~@goals))
 
 (defmacro all [& clauses] `(lconj+ ~@clauses))
 (defmacro any [& clauses] `(ldisj+ ~@clauses))

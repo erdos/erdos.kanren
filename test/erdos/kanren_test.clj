@@ -62,6 +62,13 @@
                  (=== a 1)
                  (=== a b)
                  (=== b 2))))))
+#_
+(deftest test-anyo
+  (is (= [1 2 3 1 2 3 1 2 3 1]
+         (run 10 [q]
+           (anyo (conde [(=== 1 q)]
+                        [(=== 2 q)]
+                        [(=== 3 q)]))) )))
 
 (deftest simple-tests
   (is (= ["hello"]
