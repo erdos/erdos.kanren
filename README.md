@@ -17,9 +17,9 @@ Clone the repository. Run with Leiningen.
 
 The [Zebra Puzzle](https://en.wikipedia.org/wiki/Zebra_Puzzle) was used for benchmarking the code. You can also run the tests with `$ lein test :bench` with [Leiningen](https://leiningen.org/).
 
-|    Library               | Mean Time | Std-deviation |
-| ------------------------ | --------- | ------------- |
-| **erdos.kanren**         | 13.28 ms  | 148 µs        |
+|    Library               | Mean Time | Standard Deviation |
+| ------------------------ | --------- | ------------------ |
+| **erdos.kanren**         | 13.28 ms  | 148 µs             |
 | [clojure.core.logic](https://github.com/clojure/core.logic) 1.0.0 | 21.52 ms  | 207 µs |
 | [microLogic](https://github.com/mullr/micrologic) | 27.78 ms | 1.35 ms |
 
